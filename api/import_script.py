@@ -18,6 +18,9 @@ def get_all_recipes():
                 ingredient_matches = ingredient_regex.match(ingredient)
                 try:
                     quantity = float(ingredient_matches['quantity'])
+                except ValueError as error:
+                    print(error)
+                    quantity = None
                 except:
                     quantity = None
                 ingredients.append({
