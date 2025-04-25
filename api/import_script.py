@@ -2,11 +2,11 @@ import csv
 import json
 import re
 
-if __name__ == '__main__':
+def get_all_recipes():
     ingredient_regex = re.compile(r'^(?P<quantity>\d+)(?P<unit>[a-zA-Z]*) (?P<name>.+)$')
     all_recipes = []
 
-    with open('recipes.csv', 'r') as csvfile, open('recipes.json', 'w') as jsonfile:
+    with open('../recipes.csv', 'r') as csvfile, open('../recipes.json', 'w') as jsonfile:
         dict_reader = csv.DictReader(csvfile)
         for row in dict_reader:
             row['Pictures'] = row['Pictures'].split(',')
@@ -23,4 +23,7 @@ if __name__ == '__main__':
             row['Ingredients'] = ingredients
             all_recipes.append(row)
         json.dump(all_recipes, jsonfile)
+        return all_recipes
 
+if __name__ == '__main__':
+    recipes=get_all_recipes()
