@@ -14,3 +14,6 @@ class Recipe(db.Model):
 
     # Relationships
     categories = db.relationship('Category', secondary=recipe_category, backref=db.backref('recipes', lazy='dynamic'))
+
+    def as_dict(self):
+        return {col.name: getattr(self,col.name) for col in self.__table__.columns}
