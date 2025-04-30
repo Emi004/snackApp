@@ -16,4 +16,13 @@ class Recipe(db.Model):
     categories = db.relationship('Category', secondary=recipe_category, backref=db.backref('recipes', lazy='dynamic'))
 
     def as_dict(self):
-        return {col.name: getattr(self,col.name) for col in self.__table__.columns}
+        dictionary= {col.name: getattr(self,col.name) for col in self.__table__.columns}
+        categories=[]
+        for category in self.categories:
+            categories.append(category.name)
+        dictionary['pictures']=dictionary['pictures'].split(',')
+        dictionary['categories']=categories
+
+
+
+        return dictionary

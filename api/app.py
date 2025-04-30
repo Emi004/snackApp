@@ -30,7 +30,10 @@ def get_recipes():
     recipes=[]
 
     for recipe in db.session.query(Recipe).all():
+
         recipes.append(recipe.as_dict())
+
+
     return jsonify(recipes)
 
 
