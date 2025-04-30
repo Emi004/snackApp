@@ -17,11 +17,10 @@ class Recipe(db.Model):
 
     def as_dict(self):
         dictionary= {col.name: getattr(self,col.name) for col in self.__table__.columns}
-        categories=[]
-        for category in self.categories:
-            categories.append(category.name)
+        dictionary['categories']=[category.name for category in self.categories]
         dictionary['pictures']=dictionary['pictures'].split(',')
-        dictionary['categories']=categories
+
+
 
 
 
