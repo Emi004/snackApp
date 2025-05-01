@@ -1,4 +1,3 @@
-from turtledemo.sorting_animate import instructions1
 
 from flask import Flask, jsonify,request
 from dotenv import load_dotenv
