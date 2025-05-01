@@ -1,4 +1,4 @@
-
+from turtledemo.sorting_animate import instructions1
 
 from flask import Flask, jsonify,request
 from dotenv import load_dotenv
@@ -49,17 +49,38 @@ def get_recipe(recipe_id):
 
 @app.route('/api/recipes', methods=['POST'])
 def create_recipe():
-    new_recipe = {
-        'id': len(recipes)+1,
-        'name': request.json.get('name'),
-        'duration': request.json.get('duration'),
-        'pictures': request.json.get('pictures'),
-        'instructions': request.json.get('instructions'),
-        'ingredients': request.json.get('ingredients'),
-        'categories': request.json.get('categories'),
-    }
-    recipes.append(new_recipe)
-    return jsonify(new_recipe),201
+    categories=[]
+
+    for cat_name in request.json.get('categories'):
+        category=db.session.query(Category).filter_by(name=cat_name).first()
+        if category:
+            categories.append(category)
+
+    new_recipe = Recipe(
+
+        name= request.json.get('name'),
+        duration= request.json.get('duration'),
+        pictures= request.json.get('pictures'),
+        instructions= request.json.get('instructions'),
+
+        categories=categories
+    )
+    db.session.add(new_recipe)
+    db.session.flush()
+
+    for ing in request.json.get('ingredients'):
+        ingredient = Ingredient(
+            name=ing['name'],
+            unit=ing['unit'],
+            quantity=ing['quantity'],
+            recipe_id=new_recipe.id
+
+        )
+        db.session.add(ingredient)
+
+    db.session.commit()
+
+    return jsonify(new_recipe.as_dict()),201
 @app.route('/api/recipes/<int:recipe_id>',methods=['DELETE'])
 
 def delete_recipe(recipe_id):
