@@ -41,7 +41,7 @@ def get_recipe(recipe_id):
 
     for recipe in db.session.query(Recipe).all():
 
-        if recipe.as_dict()['id'] == recipe_id:
+        if recipe.id == recipe_id:
             return jsonify(recipe.as_dict())
     return jsonify({'error': 'recipe not found'}), 404
 
@@ -83,14 +83,16 @@ def create_recipe():
 @app.route('/api/recipes/<int:recipe_id>',methods=['DELETE'])
 
 def delete_recipe(recipe_id):
-    i=0
-    for recipe in recipes:
 
-        if recipe['id'] == recipe_id:
-            delete= recipes[i]
-            recipes.pop(i)
-            return jsonify(delete),200
-        i=i+1
+    recipe=db.session.query(Recipe).filter_by(id=recipe_id).first()
+
+    if recipe:
+            db.session.query(Ingredient).filter(Ingredient.recipe_id == recipe_id).delete()
+            db.session.query(recipe_category).filter_by(recipe_id=recipe_id).delete()
+            db.session.delete(recipe)
+            db.session.commit()
+            return jsonify(recipe.as_dict()),200
+
     return jsonify({'errors':'id not found'}),404
 
 @app.route('/api/recipes/<int:recipe_id>', methods=['PUT'])
