@@ -17,7 +17,7 @@ class Recipe(db.Model):
 
     def as_dict(self):
         dictionary= {col.name: getattr(self,col.name) for col in self.__table__.columns}
-        dictionary['categories']=[category.name for category in self.categories]
+        dictionary['categories']=[category.as_dict() for category in self.categories]
         dictionary['pictures']=dictionary['pictures'].split(',')
         dictionary['ingredients']=[{'unit':ingredient.unit,'name':ingredient.name,'quantity':ingredient.quantity} for ingredient in self.ingredients]
 

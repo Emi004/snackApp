@@ -50,6 +50,8 @@ def get_recipe(recipe_id):
 def create_recipe():
     categories=[]
 
+
+
     for cat_name in request.json.get('categories'):
         category=db.session.query(Category).filter_by(name=cat_name).first()
         if category:
@@ -96,18 +98,43 @@ def delete_recipe(recipe_id):
     return jsonify({'errors':'id not found'}),404
 
 @app.route('/api/recipes/<int:recipe_id>', methods=['PUT'])
-def update_recipe(recipe_id):
+def edit_recipe(recipe_id):
 
+    recipe=db.session.query(Recipe).filter_by(id=recipe_id).first()
+    if not recipe:
+        return jsonify({'error': 'Recipe not found'}), 404
+    categories_list = []
 
-    try:
-        recipe=recipes[recipe_id-1]
-    except:
-        return jsonify({'errors':'id not found'}),404
+    for cat_name in request.json.get('categories'):
+        category = db.session.query(Category).filter_by(name=cat_name).first()
+        if category:
+            categories_list.append(category)
 
-    for key in recipe:
-        recipe[key]=value if(value:=request.json.get(key)) else recipe[key]
+    for col in recipe.__table__.columns:
 
-    return jsonify(recipe)
+            name=col.name
+            if name != 'id':
+                setattr(recipe,name, value if(value:=request.json.get(name)) else getattr(recipe,name))
+
+    recipe.categories = categories_list
+
+    for ing in request.json.get('ingredients'):
+        ingredient = Ingredient(
+            name=ing['name'],
+            unit=ing['unit'],
+            quantity=ing['quantity'],
+            recipe_id=recipe_id
+
+        )
+        if (db_ing:=db.session.query(Ingredient).filter_by(name=ingredient.name,recipe_id=recipe_id).first()):
+            for col in db_ing.__table__.columns:
+                name = col.name
+                setattr(db_ing, name, value if (value := ingredient.name) else getattr(db_ing, name))
+        else:
+            db.session.add(ingredient)
+
+    db.session.commit()
+    return jsonify(recipe.as_dict()),200
 
 if __name__ == '__main__':
     with app.app_context():
