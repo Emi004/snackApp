@@ -128,8 +128,9 @@ def edit_recipe(recipe_id):
         )
         if (db_ing:=db.session.query(Ingredient).filter_by(name=ingredient.name,recipe_id=recipe_id).first()):
             for col in db_ing.__table__.columns:
-                name = col.name
-                setattr(db_ing, name, value if (value := ingredient.name) else getattr(db_ing, name))
+                col_name=col.name
+                if col_name != 'id':
+                    setattr(db_ing, col_name, getattr(ingredient, col_name))
         else:
             db.session.add(ingredient)
 
