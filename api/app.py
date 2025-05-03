@@ -148,8 +148,9 @@ def get_categories():
 
 @app.route('/api/categories', methods=["POST"])
 def create_category():
-    category=Category(name=request.json.get('name'),
-                      color=request.json.get('color'))
+
+    # NOTE(interesting find): ** turns dic key:value into keyword arguments ("nume":"blabla" -> nume="blabla")
+    category=Category(**{col.name: request.json.get(col.name) for col in Category.__table__.columns})
     if db.session.query(Category).filter_by(name=category.name).first():
         return jsonify({'error':"already exists"}),403
     db.session.add(category)
