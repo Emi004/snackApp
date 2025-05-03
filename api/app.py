@@ -137,6 +137,25 @@ def edit_recipe(recipe_id):
     db.session.commit()
     return jsonify(recipe.as_dict()),200
 
+@app.route('/api/categories', methods=["GET"])
+def get_categories():
+    categories=[]
+
+    for category in db.session.query(Category).all():
+        categories.append(category.as_dict())
+
+    return jsonify(categories),200
+
+@app.route('/api/categories', methods=["POST"])
+def create_category():
+    category=Category(name=request.json.get('name'),
+                      color=request.json.get('color'))
+    if db.session.query(Category).filter_by(name=category.name).first():
+        return jsonify({'error':"already exists"}),403
+    db.session.add(category)
+    db.session.commit()
+    return jsonify(category.as_dict()),200
+
 if __name__ == '__main__':
     with app.app_context():
         db.create_all()
