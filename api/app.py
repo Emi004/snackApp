@@ -51,33 +51,50 @@ def create_recipe():
     categories=[]
 
 
+    categoriesJSON=request.json.get('categories')
+    if len(categoriesJSON)==0 or categoriesJSON is None:
+        return jsonify({'error': 'categories is empty'}), 400
 
-    for cat_name in request.json.get('categories'):
+    for cat_name in categoriesJSON:
         category=db.session.query(Category).filter_by(name=cat_name).first()
         if category:
             categories.append(category)
+        else:
+            return jsonify({'error': f'{cat_name} does not exist'}), 400
 
+    keywords={}
+    for col in Recipe.__table__.columns:
+
+        if col.name!='id':
+            value=request.json.get(col.name)
+            if value is None or value=='':
+                return jsonify({'error': f'{col.name} is empty'}), 400
+            keywords[col.name]=value
     new_recipe = Recipe(
-
-        name= request.json.get('name'),
-        duration= request.json.get('duration'),
-        pictures= request.json.get('pictures'),
-        instructions= request.json.get('instructions'),
-
-        categories=categories
+            **keywords,
+            categories=categories
     )
     db.session.add(new_recipe)
     db.session.flush()
 
-    for ing in request.json.get('ingredients'):
-        ingredient = Ingredient(
-            name=ing['name'],
-            unit=ing['unit'],
-            quantity=ing['quantity'],
-            recipe_id=new_recipe.id
+    ingredientsJSON=request.json.get('ingredients')
+    if len(ingredientsJSON)==0 or ingredientsJSON is None:
+        return jsonify({'error': 'ingredients is empty'}), 400
+    else:
+        for ing in request.json.get('ingredients'):
+            keywords_ing={}
+            for col in Ingredient.__table__.columns:
+                if col.name!='id' and col.name!='recipe_id':
+                    value=ing.get(col.name)
+                    if (value is None and col.name!='unit') or value=='' or (value==0 and col.name=='quantity'):
+                        return jsonify({'error': f'{ing} {col.name} is empty'}), 400
+                    keywords_ing[col.name]=value
+            ingredient = Ingredient(
+                **keywords_ing,
+                recipe_id=new_recipe.id
 
-        )
-        db.session.add(ingredient)
+            )
+            db.session.add(ingredient)
 
     db.session.commit()
 
@@ -109,6 +126,9 @@ def edit_recipe(recipe_id):
         category = db.session.query(Category).filter_by(name=cat_name).first()
         if category:
             categories_list.append(category)
+        else:
+            return jsonify({'error': f'{cat_name} does not exist'}), 400
+
 
     for col in recipe.__table__.columns:
 
@@ -149,8 +169,15 @@ def get_categories():
 @app.route('/api/categories', methods=["POST"])
 def create_category():
 
+    keywords={}
+    for col in Category.__table__.columns:
+        if col.name != 'id':
+            value=request.json.get(col.name)
+            if value is None or value == '':
+                return jsonify({'error':f'{col.name} is Null'}),400
+            keywords[col.name]=value
     # NOTE(interesting find): ** turns dic key:value into keyword arguments ("nume":"blabla" -> nume="blabla")
-    category=Category(**{col.name: request.json.get(col.name) for col in Category.__table__.columns})
+    category=Category(**keywords)
     if db.session.query(Category).filter_by(name=category.name).first():
         return jsonify({'error':"already exists"}),403
     db.session.add(category)
