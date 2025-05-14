@@ -16,12 +16,9 @@ class Recipe(db.Model):
     categories = db.relationship('Category', secondary=recipe_category, backref=db.backref('recipes', lazy='dynamic'))
 
     def as_dict(self):
-        dictionary= {col.name: getattr(self,col.name) for col in self.__table__.columns}
-        dictionary['categories']=[category.as_dict() for category in self.categories]
-        dictionary['pictures']=dictionary['pictures'].split(',')
-        dictionary['ingredients']=[{'unit':ingredient.unit,'name':ingredient.name,'quantity':ingredient.quantity} for ingredient in self.ingredients]
-
-
-
+        dictionary = {col.name: getattr(self, col.name) for col in self.__table__.columns}
+        dictionary['categories'] = [category.as_dict() for category in self.categories]
+        dictionary['pictures'] = dictionary['pictures'].split(',')
+        dictionary['ingredients'] = [ingredient.as_dict() for ingredient in self.ingredients]
 
         return dictionary
