@@ -12,37 +12,37 @@
     ],
     "Ingredients": [
       {
-        "quantity": "250",
+        "quantity": 250.0,
         "unit": "g",
         "name": "all-purpose flour"
       },
       {
-        "quantity": "125",
+        "quantity": 125.0,
         "unit": "g",
         "name": "butter"
       },
       {
-        "quantity": "100",
+        "quantity": 100.0,
         "unit": "g",
         "name": "sugar"
       },
       {
-        "quantity": "1",
+        "quantity": 1.0,
         "unit": null,
         "name": "egg"
       },
       {
-        "quantity": "5",
+        "quantity": 5.0,
         "unit": "g",
         "name": "vanilla extract"
       },
       {
-        "quantity": "3",
+        "quantity": 3.0,
         "unit": "g",
         "name": "baking soda"
       },
       {
-        "quantity": "150",
+        "quantity": 150.0,
         "unit": "g",
         "name": "chocolate chips"
       }
@@ -62,32 +62,32 @@
     ],
     "Ingredients": [
       {
-        "quantity": "250",
+        "quantity": 250.0,
         "unit": "g",
         "name": "mascarpone cheese"
       },
       {
-        "quantity": "100",
+        "quantity": 100.0,
         "unit": "g",
         "name": "sugar"
       },
       {
-        "quantity": "3",
+        "quantity": 3.0,
         "unit": null,
         "name": "egg yolks"
       },
       {
-        "quantity": "200",
+        "quantity": 200.0,
         "unit": "g",
         "name": "ladyfingers"
       },
       {
-        "quantity": "300",
+        "quantity": 300.0,
         "unit": "ml",
         "name": "brewed coffee"
       },
       {
-        "quantity": "20",
+        "quantity": 20.0,
         "unit": "g",
         "name": "cocoa powder"
       }
@@ -106,37 +106,37 @@
     ],
     "Ingredients": [
       {
-        "quantity": "300",
+        "quantity": 300.0,
         "unit": "g",
         "name": "all-purpose flour"
       },
       {
-        "quantity": "150",
+        "quantity": 150.0,
         "unit": "g",
         "name": "butter"
       },
       {
-        "quantity": "50",
+        "quantity": 50.0,
         "unit": "g",
         "name": "sugar"
       },
       {
-        "quantity": "4",
+        "quantity": 4.0,
         "unit": null,
         "name": "apples"
       },
       {
-        "quantity": "50",
+        "quantity": 50.0,
         "unit": "g",
         "name": "brown sugar"
       },
       {
-        "quantity": "5",
+        "quantity": 5.0,
         "unit": "g",
         "name": "cinnamon"
       },
       {
-        "quantity": "10",
+        "quantity": 10.0,
         "unit": "ml",
         "name": "lemon juice"
       }
