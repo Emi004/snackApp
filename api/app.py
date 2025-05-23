@@ -1,3 +1,4 @@
+from import_script import get_all_recipes, populate_db
 from flask import Flask, jsonify, request
 from dotenv import load_dotenv
 
@@ -15,6 +16,21 @@ app = Flask(__name__)
 app.config.from_object(Config)
 db.init_app(app)
 
+
+def add_ingredients_to_db(ingredients, recipe_id):
+    for ing in ingredients:
+        try:
+            quantity = float(ing['quantity'])
+        except ValueError as exc:
+            return jsonify({'error': f'quantity is not of type float: {exc}'}), 400
+
+        ingredient = Ingredient(
+            name=ing['name'],
+            quantity=quantity,
+            unit=ing['unit'],
+            recipe_id=recipe_id,
+        )
+        db.session.add(ingredient)
 
 @app.route('/')
 def hello_world():
@@ -40,60 +56,54 @@ def get_recipe(recipe_id):
 
 @app.route('/api/recipes', methods=['POST'])
 def create_recipe():
-    categories = []
+    request_body = {
+        'name': request.json.get('name'),
+        'duration': request.json.get('duration'),
+        'pictures': request.json.get('pictures'),
+        'instructions': request.json.get('instructions'),
+        'categories': request.json.get('categories'),
+        'ingredients': request.json.get('ingredients'),
+    }
+    for key, value in request_body.items():
+        if not value:
+            return jsonify({'error': f'{key} is required'}), 400
+    for cat in request_body['categories']:
+        if 'name' not in cat:
+            return jsonify({'error': 'categories must contain a name'}), 400
+    for ing in request_body['ingredients']:
+        if 'name' not in ing or 'quantity' not in ing:
+            return jsonify({'error': 'ingredients must contain a name, quantity and unit (optional)'}), 400
 
-    categoriesJSON = request.json.get('categories')
-    if not categoriesJSON:
-        return jsonify({'error': 'categories is empty'}), 400
+    try:
+        category_objs = []
+        for cat in request_body['categories']:
+            # Check if the category exists
+            category = Category.query.filter_by(name=cat['name']).first()
+            if not category:
+                return jsonify({'error': f'category {cat["name"]} not found'}), 400
+            category_objs.append(category)
 
-    for cat in categoriesJSON:
-        cat_name = cat.get('name')
-        if not cat_name:
-            return jsonify({'error': 'Category name is missing'}), 400
+        # Create a recipe object
+        recipe = Recipe(
+            name=request_body['name'],
+            duration=request_body['duration'],
+            pictures=request_body['pictures'],
+            instructions=request_body['instructions'],
+            categories=category_objs,
+        )
+        db.session.add(recipe)
+        db.session.flush()  # Ensure recipe.id is available
 
-        category = db.session.query(Category).filter_by(name=cat_name).first()
-        if category:
-            categories.append(category)
-        else:
-            return jsonify({'error': f'Category "{cat_name}" does not exist'}), 400
+        # Add ingredients
+        add_ingredients_to_db(request_body['ingredients'], recipe.id)
 
-    keywords = {}
-    for col in Recipe.__table__.columns:
+        db.session.commit()
+        print(f'Inserted recipe: {recipe.name}')
+        return jsonify(recipe.as_dict()), 201
+    except Exception as exc:
+        db.session.rollback()
+        return jsonify({'error': f'something went wrong: {exc}'}), 500
 
-        if col.name != 'id':
-            value = request.json.get(col.name)
-            if value is None or value == '':
-                return jsonify({'error': f'{col.name} is empty'}), 400
-            keywords[col.name] = value
-    new_recipe = Recipe(
-        **keywords,
-        categories=categories
-    )
-    db.session.add(new_recipe)
-    db.session.flush()
-
-    ingredientsJSON = request.json.get('ingredients')
-    if not ingredientsJSON:
-        return jsonify({'error': 'ingredients is empty'}), 400
-    else:
-        for ing in request.json.get('ingredients'):
-            keywords_ing = {}
-            for col in Ingredient.__table__.columns:
-                if col.name != 'id' and col.name != 'recipe_id':
-                    value = ing.get(col.name)
-                    if (value is None and col.name != 'unit') or value == '' or (value == 0 and col.name == 'quantity'):
-                        return jsonify({'error': f'{ing} {col.name} is empty'}), 400
-                    keywords_ing[col.name] = value
-            ingredient = Ingredient(
-                **keywords_ing,
-                recipe_id=new_recipe.id
-
-            )
-            db.session.add(ingredient)
-
-    db.session.commit()
-
-    return jsonify(new_recipe.as_dict()), 201
 
 
 @app.route('/api/recipes/<int:recipe_id>', methods=['DELETE'])
@@ -180,7 +190,13 @@ def create_category():
     return jsonify(category.as_dict()), 200
 
 
+
 if __name__ == '__main__':
-    with app.app_context():
-        db.create_all()
-    app.run(debug=True)
+    # with app.app_context():
+    #     db.drop_all()
+    #     db.create_all()
+
+    # Use the following line if you want to populate the database with sample data
+    # populate_db(get_all_recipes(), app, db)
+
+    app.run(host='0.0.0.0')
