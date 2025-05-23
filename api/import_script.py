@@ -1,13 +1,10 @@
 import csv
-import json
 import re
+import json
 
-from unicodedata import category
-
-from app import app, db
-from models.recipe import Recipe
-from models.ingredient import Ingredient
 from models.category import Category
+from models.ingredient import Ingredient
+from models.recipe import Recipe
 
 CATEGORY_COLORS = {
     'Baking': '#FFA500',  # orange
@@ -19,10 +16,12 @@ CATEGORY_COLORS = {
 
 
 def get_all_recipes():
+    # Regex to match the ingredient format
     ingredient_regex = re.compile(r'^(?P<quantity>\d+)(?P<unit>[a-zA-Z]*) (?P<name>.+)$')
-    all_recipes = []
-
+    # Open a CSV file to read all recipes and a JSON file to write the processed data
+    recipes = []
     with open('../recipes.csv', 'r') as csvfile, open('../recipes.json', 'w') as jsonfile:
+        # Read CSV file in dict format with header as keys
         dict_reader = csv.DictReader(csvfile)
         for row in dict_reader:
             row['Pictures'] = row['Pictures'].split(',')
@@ -33,10 +32,8 @@ def get_all_recipes():
                 ingredient_matches = ingredient_regex.match(ingredient)
                 try:
                     quantity = float(ingredient_matches['quantity'])
-                except ValueError as error:
-                    print(error)
-                    quantity = None
-                except:
+                except ValueError as exc:
+                    print(f'Error converting quantity to float: {exc}')
                     quantity = None
                 ingredients.append({
                     'quantity': quantity,
@@ -44,53 +41,56 @@ def get_all_recipes():
                     'name': ingredient_matches['name'],
                 })
             row['Ingredients'] = ingredients
-            all_recipes.append(row)
-        json.dump(all_recipes, jsonfile)
-        return all_recipes
+            recipes.append(row)
+        # Write processed dict to JSON file
+        json.dump(recipes, jsonfile)
+    return recipes
 
 
-def populate_db(recipes):
+def populate_db(recipes, app, db):
+    # Start app context to access DB
     with app.app_context():
         try:
             for recipe_data in recipes:
-                category_obj = []
-                for cat_name in recipe_data["Categories"]:
+                # Handle categories
+                category_objs = []
+                for cat_name in recipe_data['Categories']:
+                    # Try to find an existing category
                     category = Category.query.filter_by(name=cat_name).first()
                     if not category:
-                        category = Category(name=cat_name, color=CATEGORY_COLORS.get(cat_name, '#0f0f0f'))
+                        category = Category(
+                            name=cat_name,
+                            color=CATEGORY_COLORS.get(cat_name, '#848482'),  # Default to gray in hex
+                        )
                         db.session.add(category)
-                    category_obj.append(category)
-                # string = ''
-                # for pic in recipe_data["Pictures"]:
-                #     string = string + pic + ','
-                # VERBOUSSSSSSSSSS!!!!!!
-                recipe = Recipe(name=recipe_data["Recipe name"],
-                                duration=recipe_data["Duration"],
-                                pictures=','.join(recipe_data["Pictures"]),
-                                instructions=recipe_data["Instructions"],
-                                categories=category_obj
-                                )
-                db.session.add(recipe)
-                db.session.flush()
+                    category_objs.append(category)
 
-                for ing in recipe_data["Ingredients"]:
+                # Create a recipe
+                recipe = Recipe(
+                    name=recipe_data['Recipe name'],
+                    duration=recipe_data['Duration'],
+                    pictures=','.join(recipe_data['Pictures']),
+                    instructions=recipe_data['Instructions'],
+                    categories=category_objs,
+                )
+                db.session.add(recipe)
+                db.session.flush()  # Ensure recipe.id is available
+
+                # Add ingredients
+                for ing in recipe_data['Ingredients']:
                     ingredient = Ingredient(
                         name=ing['name'],
-                        unit=ing['unit'],
                         quantity=ing['quantity'],
-                        recipe_id=recipe.id
-
+                        unit=ing['unit'],
+                        recipe_id=recipe.id,
                     )
                     db.session.add(ingredient)
 
-                print(f'Inserted recipe:{recipe.name}')
+                print(f'Inserted recipe: {recipe.name}')
+
             db.session.commit()
-            print("populated db")
-        except Exception as e:
+            print('Database populated successfully!')
+
+        except Exception as exc:
             db.session.rollback()
-            print(e)
-
-
-if __name__ == '__main__':
-    recipes = get_all_recipes()
-    populate_db(recipes)
+            print('Error during population:', exc)
