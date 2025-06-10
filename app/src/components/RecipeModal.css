@@ -1,0 +1,14 @@
+.modal-body::-webkit-scrollbar {
+  background-color: #f8f9fa;
+  width: 5px;
+}
+
+.modal-body::-webkit-scrollbar-thumb {
+  background-color: #ccc;
+  border-radius: 4px;
+}
+
+.modal-body::-webkit-scrollbar-track {
+  background-color: #f8f9fa;
+}
+
