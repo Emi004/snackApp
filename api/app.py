@@ -1,6 +1,7 @@
 from import_script import get_all_recipes, populate_db
 from flask import Flask, jsonify, request
 from dotenv import load_dotenv
+from flask_cors import CORS
 
 load_dotenv()
 
@@ -15,6 +16,7 @@ from models.association import recipe_category
 app = Flask(__name__)
 app.config.from_object(Config)
 db.init_app(app)
+CORS(app, origins=[Config.APP_URL or '*'])
 
 
 def add_ingredients_to_db(ingredients, recipe_id):

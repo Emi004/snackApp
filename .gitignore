@@ -4,3 +4,7 @@
 venv
 __pycache__
 *.pem
+
+.vite
+node_modules
+dist
