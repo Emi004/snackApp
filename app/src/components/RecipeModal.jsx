@@ -54,6 +54,7 @@ export function RecipeModal(props) {
             );
           })}
         </ul>
+        <h5 className="mt-2">Servings:</h5>
 
         <FormControl
           placeholder="Multiplier"
