@@ -1,6 +1,9 @@
 from import_script import get_all_recipes, populate_db
+import time
 from flask import Flask, jsonify, request
 from dotenv import load_dotenv
+from flask_cors import CORS
+
 
 load_dotenv()
 
@@ -15,6 +18,7 @@ from models.association import recipe_category
 app = Flask(__name__)
 app.config.from_object(Config)
 db.init_app(app)
+CORS(app, origins=[Config.APP_URL or '*'])
 
 
 def add_ingredients_to_db(ingredients, recipe_id):
@@ -44,6 +48,8 @@ def get_recipes():
     for recipe in db.session.query(Recipe).all():
         recipes.append(recipe.as_dict())
 
+
+    time.sleep(2)
     return jsonify(recipes)
 
 
